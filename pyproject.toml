@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "jasper-cli"
+version = "0.1.1"                         # bump this
+description = "CLI helper for your course"
+requires-python = ">=3.9"
+dependencies = [
+  "rich>=13.0.0",
+  "requests",
+  "click",          # or typer, etc., as needed
+  "pyyaml"
+]
+
+[project.scripts]
+jasper = "jasper.jasper:main"
+
+[tool.setuptools.packages.find]
+include = ["jasper", "jasper.*"]          # <- ensures jasper/commands is packaged
+
+[tool.setuptools.package-data]
+jasper = ["config.json"]
