@@ -11,7 +11,7 @@ def run(args):
     server_url = config.get("server_url", "http://localhost:3000")
     try:
         res = requests.get(f"{server_url}/badges", params={"student_id": student_id})
-        print(f"--- BADGES DASHBOARD for student {student_id} ---")
+        print(f"--- DASHBOARD for {student_id} ---")
         data = res.json()
         print(f"🏅 Badges earned: {data.get('badges_earned', 0)}")
         print(f"🎖️ Badge types: {', '.join(data.get('badges', []))}")
