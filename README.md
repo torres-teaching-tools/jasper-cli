@@ -1,9 +1,12 @@
 # jasper-cli
 
-make build → dist/*.whl
+# Edit your jasper-cli code in the repo
+make force-install
+# This rebuilds the wheel and forces pipx to use the new one
+jasper --help      # or test the command you changed
 
-make force-install → reinstall into your pipx venv for quick testing
+make push
 
-make tag → creates/pushes vX.Y.Z from pyproject version
+# Update version in pyproject.toml (e.g., 0.1.3)
+make tag
 
-make release → uploads to PyPI

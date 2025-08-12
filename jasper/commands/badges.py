@@ -2,7 +2,7 @@ import requests
 from jasper.utils import load_config
 
 def register(subparsers):
-    parser = subparsers.add_parser("badges", help="Show earned badges and grades")
+    parser = subparsers.add_parser("dashboard", help="Show earned badges and grades")
     parser.set_defaults(func=run)
 
 def run(args):
