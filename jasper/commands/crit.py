@@ -3,7 +3,7 @@ import json
 import requests
 from jasper.utils import load_config, zip_folder
 
-def run_critique(args=None):
+def run_critique(args=None, print_crit=True):
     config = load_config()
 
     folder_name = os.path.basename(os.getcwd())
@@ -39,15 +39,27 @@ def run_critique(args=None):
         critique_text = result.get("critique", "No critique found.")
 
         # Save Markdown
-        with open(".jasper/critique.md", "w") as f:
-            f.write("# AI Code Review\n\n")
-            f.write(f"**Grade**: {grade}/100\n\n")
+        md_path = os.path.join(".jasper", "critique.md")
+        with open(md_path, "w", encoding="utf-8") as f:
+            # f.write("# AI Code Review\n\n")
+            # f.write(f"**Grade**: {grade}/100\n\n")
             f.write(critique_text.strip() + "\n")
 
-        # Print summary
-        print("💬 AI Feedback:")
-        print(critique_text)
-        print("\n📄 Saved to `.jasper/critique.md`")
+        # Render Markdown in terminal (match explain.py behavior)
+        if print_crit:
+            try:
+                from rich.console import Console
+                from rich.markdown import Markdown
+                console = Console()
+                with open(md_path, "r", encoding="utf-8") as md_file:
+                    md_content = md_file.read()
+                console.print(Markdown(md_content))
+            except ImportError:
+                # Fallback if 'rich' isn't installed
+                with open(md_path, "r", encoding="utf-8") as md_file:
+                    print(md_file.read())
+
+            print("\n📄 Saved to `.jasper/critique.md`")
 
         return result
 
