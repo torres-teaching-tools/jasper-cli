@@ -12,17 +12,20 @@ from jasper.commands import explain as explain_cmd
 from jasper.commands import crit as crit_cmd
 from jasper.commands import check as check_cmd
 from jasper.commands import submit as submit_cmd
+from jasper.commands import version as version_cmd
 
 def main():
     parser = argparse.ArgumentParser(description="Jasper CLI Tool")
     subparsers = parser.add_subparsers(dest="command", required=True)
 
+    version_cmd.register(subparsers)
     init_cmd.register(subparsers)
     get_cmd.register(subparsers)
     explain_cmd.register(subparsers)
     check_cmd.register(subparsers)
     crit_cmd.register(subparsers)
     submit_cmd.register(subparsers)
+   
 
     args = parser.parse_args()
     args.func(args)
