@@ -13,6 +13,7 @@ from jasper.commands import crit as crit_cmd
 from jasper.commands import check as check_cmd
 from jasper.commands import submit as submit_cmd
 from jasper.commands import version as version_cmd
+from jasper.commands import relay as relay_cmd
 
 def main():
     parser = argparse.ArgumentParser(description="Jasper CLI Tool")
@@ -24,6 +25,7 @@ def main():
     explain_cmd.register(subparsers)
     check_cmd.register(subparsers)
     crit_cmd.register(subparsers)
+    relay_cmd.register(subparsers)
     submit_cmd.register(subparsers)
    
 
