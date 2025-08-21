@@ -27,7 +27,7 @@ def run(args):
     print("🚚 Uploading to instructor relay inbox...")
     try:
         with open(zip_path, "rb") as f:
-            files = {"file": f}
+            files = {"file": ("submission.zip", f, "application/zip")}
             data = {"student_id": student_id, "problem_id": problem_id}
             res = requests.post(f"{server_url}/relay", data=data, files=files, timeout=60)
             if res.status_code != 200:
