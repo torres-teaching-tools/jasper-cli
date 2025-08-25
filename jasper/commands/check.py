@@ -7,8 +7,6 @@ def run_tests():
     if "-" not in folder_name:
         raise ValueError("❌ Could not infer problem ID from folder name. Use format like `132-hello-world`.")
     problem_id = folder_name.split("-")[0]
-    # if not os.path.exists("main.c"):
-    #     raise FileNotFoundError("❌ Could not find main.c in the current folder.")
     zip_path = zip_folder(".")
     with open(zip_path, "rb") as f:
         files = {"file": f}
@@ -18,10 +16,8 @@ def run_tests():
         }
         response = requests.post(f"{config['server_url']}/check", data=data, files=files)
     try:
-        # Print HTTP status for progress
-        # print(f"🔗 Server responded with status: {response.status_code}")
         if response.status_code == 200:
-            print("Server successfully compiled and tested your code.");
+            print("Server successfully compiled and tested your code.")
         else:
             print("❌ Server could not compile your code.\nMake sure ``make`` works locally before asking jasper to check again.\n --- LOG ---")
         return response.json()
@@ -38,15 +34,18 @@ def run_tests():
 
 def register(subparsers):
     parser = subparsers.add_parser("check", help="Run only test cases")
-    parser.set_defaults(func=lambda args: pretty_print(run_tests(), final=False))
+    parser.add_argument(
+        "-b", "--bytes",
+        action="store_true",
+        help="Show outputs in raw byte/escape form (e.g., \\n, \\t, \\x00)"
+    )
+    parser.set_defaults(func=lambda args: pretty_print(run_tests(), final=False, show_bytes=args.bytes))
 
-def pretty_print(result, final):
-    # persist raw result for debugging
+def pretty_print(result, final, show_bytes=False):
     os.makedirs(".jasper", exist_ok=True)
     with open(".jasper/check.json", "w") as f:
         json.dump(result, f, indent=2)
 
-    # server-side error path
     if "error" in result:
         print(format_text("❌ Error during check:", bold=True, color="red"))
         print(result["error"])
@@ -56,13 +55,10 @@ def pretty_print(result, final):
             print("🔒 Authentication error: Please check your student ID or server permissions.")
         return
 
-    # Support either 'tests' or 'test_results'
     tests = result.get("tests") or result.get("test_results") or []
 
-    # Title
     print(format_text("Unit Test Results:", bold=True, underline=True))
 
-    # Helpers
     def _nonempty(x):
         return x is not None and x != ""
 
@@ -79,7 +75,6 @@ def pretty_print(result, final):
         expected = t.get("expected")
         actual   = t.get("actual")
 
-        # Provide sensible fallbacks for types without .out files
         if typ == "memory":
             if expected is None:
                 expected = "(no expected file; pass = no leaks reported)"
@@ -91,24 +86,46 @@ def pretty_print(result, final):
             if actual is None:
                 actual = _detail_for_check(t)
 
-        # Ensure strings
-        expected = "" if expected is None else str(expected)
-        actual   = "" if actual is None else str(actual)
+        def _rend(x):
+            if x is None:
+                return ""
+            s = str(x)
+            return repr(s) if show_bytes else s
+        expected = _rend(expected)
+        actual   = _rend(actual)
         return expected, actual
 
     def _content_for_passed(t: dict) -> str:
-        # Prefer Actual, else Expected, else type-specific details
         act = t.get("actual")
         exp = t.get("expected")
-        if _nonempty(act): return str(act)
-        if _nonempty(exp): return str(exp)
+        def _rend(x):
+            if x is None: return ""
+            s = str(x)
+            return repr(s) if show_bytes else s
+        if _nonempty(act): return _rend(act)
+        if _nonempty(exp): return _rend(exp)
         if t.get("type") == "memory":
-            return str(t.get("valgrind_output") or "(no valgrind output)")
+            v = t.get("valgrind_output") or "(no valgrind output)"
+            return repr(str(v)) if show_bytes else str(v)
         if t.get("type") == "check":
             return _detail_for_check(t)
         return "(no output)"
 
-    # Totals and partitions
+    def _manual_run_line(t: dict) -> str | None:
+        args = t.get("args")
+        if isinstance(args, list) and all(isinstance(a, str) for a in args):
+            return f"To manually run this test, execute: `./mysolution {' '.join(args)}`"
+        for key in ("input_file", "in_file", "stdin_file", "inpath"):
+            if key in t and t[key]:
+                base = os.path.basename(str(t[key]))
+                name, _dot, _ext = base.partition(".")
+                tokens = [tok for part in name.split("-") for tok in part.split("_")]
+                tokens = [tok for part in tokens for tok in part.split()]
+                tokens = [tok for tok in tokens if tok]
+                if tokens:
+                    return f"To manually run this test, execute: `./mysolution {' '.join(tokens)}`"
+        return None
+
     total_points = 0
     earned_points = 0
     passed_count = 0
@@ -124,7 +141,6 @@ def pretty_print(result, final):
         else:
             failed.append(t)
 
-    # 1) Failed tests (detailed, Expected/Actual)
     for t in failed:
         name = t.get("test", "unknown")
         typ  = t.get("type", "N/A")
@@ -134,8 +150,10 @@ def pretty_print(result, final):
         expected, actual = _expected_actual(t)
         print(f"    Expected: {expected}")
         print(f"    Actual:   {actual}")
+        line = _manual_run_line(t)
+        if line:
+            print(f"    {line}")
 
-    # 2) Passed tests (compact, show only the output in green)
     for t in passed:
         name = t.get("test", "unknown")
         typ  = t.get("type", "N/A")
@@ -146,15 +164,16 @@ def pretty_print(result, final):
         if body:
             for line in str(body).splitlines():
                 print(format_text("    " + line, color="green"))
+        line = _manual_run_line(t)
+        if line:
+            print(format_text("    " + line, color="green"))
 
-    # 3) Problem Score summary
     total_tests = len(tests)
     print()
     print(format_text("Problem Score:", bold=True))
     print(f"{passed_count}/{total_tests} tests passed")
     print(f"{earned_points}/{total_points} points")
 
-    # Optional overall flag if server provides it
     if "passed" in result:
         print()
         print("Overall result:", format_text("✅ Passed", color="green") if result["passed"]
@@ -163,4 +182,3 @@ def pretty_print(result, final):
     if final:
         print()
         print("💾 Stored final submission result.")
-
