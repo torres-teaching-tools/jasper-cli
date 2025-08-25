@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "jasper-cli"
-version = "0.1.9"                         # bump this
+version = "0.1.10"                         # bump this
 description = "CLI helper for your course"
 requires-python = ">=3.9"
 dependencies = [
