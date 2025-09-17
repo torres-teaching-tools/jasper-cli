@@ -69,7 +69,7 @@ def run(args):
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     try:
         with open(submission_path, "w", encoding="utf-8") as f:
-            f.write(f"Problem {problem_id} was received at {timestamp}\n")
+            f.write(f"Problem {problem_id} was last received at {timestamp}\n")
         print(f"📄 Wrote SUBMISSION file: {submission_path}")
     except Exception as e:
         print(f"⚠️ Could not write SUBMISSION file: {e}")

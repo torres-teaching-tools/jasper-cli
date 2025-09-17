@@ -181,3 +181,5 @@ cython_debug/
 .cursorindexingignore
 13*
 14*
+2*
+.jasper

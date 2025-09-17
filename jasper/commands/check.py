@@ -41,10 +41,26 @@ def register(subparsers):
     )
     parser.set_defaults(func=lambda args: pretty_print(run_tests(), final=False, show_bytes=args.bytes))
 
+# --- New helper ---
+def _check_last_submission():
+    path = os.path.join(os.getcwd(), "SUBMISSION")
+    if os.path.exists(path):
+        try:
+            with open(path, "r", encoding="utf-8") as f:
+                line = f.readline().strip()
+            return True, line
+        except Exception as e:
+            return False, f"⚠️ Could not read SUBMISSION file: {e}"
+    else:
+        return False, None
+
 def pretty_print(result, final, show_bytes=False):
     os.makedirs(".jasper", exist_ok=True)
     with open(".jasper/check.json", "w") as f:
         json.dump(result, f, indent=2)
+
+    
+    print()
 
     if "error" in result:
         print(format_text("❌ Error during check:", bold=True, color="red"))
@@ -182,3 +198,16 @@ def pretty_print(result, final, show_bytes=False):
     if final:
         print()
         print("💾 Stored final submission result.")
+    
+    # --- Show submission status ---
+    ok, msg = _check_last_submission()
+    if ok:
+        print(format_text(msg, color="green", bold=True))
+    else:
+        if msg:
+            print(format_text(msg, color="red"))
+        else:
+            print(format_text(
+                "⚠️ This code has not been submitted. To submit, make sure to run `jasper submit`",
+                color="red", bold=True
+            ))
