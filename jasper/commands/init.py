@@ -59,7 +59,7 @@ def run(args):
 
     # 2) Prompt for CLASS CODENAME (stored as student_id)
     print("\nPlease enter your CLASS CODENAME.")
-    print("TA Shreyosi emailed a codename to your mavs.uta.edu account in the form adjective-noun-number.")
+    print("TA Emerson emailed a codename to your mavs.uta.edu account in the form adjective-noun-number.")
     while True:
         codename = input("Class codename (e.g., silly-cat-7): ").strip()
         if not CODENAME_REGEX.fullmatch(codename):
