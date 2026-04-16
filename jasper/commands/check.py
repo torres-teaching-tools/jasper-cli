@@ -1,19 +1,34 @@
 import os, requests, json
 from jasper.utils import load_config, zip_folder, format_text
 
-def run_tests():
+def run_tests(test_index=None, announce_request=True):
     config = load_config()
     folder_name = os.path.basename(os.getcwd())
     if "-" not in folder_name:
         raise ValueError("❌ Could not infer problem ID from folder name. Use format like `132-hello-world`.")
     problem_id = folder_name.split("-")[0]
+    if test_index is not None and test_index < 1:
+        raise ValueError("❌ Test number must be at least 1.")
+
     zip_path = zip_folder(".")
     with open(zip_path, "rb") as f:
         files = {"file": f}
         data = {
             "student_id": config["student_id"],
-            "problem_id": problem_id
+            "problem_id": problem_id,
         }
+        if test_index is not None:
+            data["test"] = str(test_index)
+
+        if announce_request:
+            if test_index is not None:
+                print(
+                    f"Sending check request to the grading server (single test: {test_index})…",
+                    flush=True,
+                )
+            else:
+                print("Sending check request to the grading server…", flush=True)
+
         response = requests.post(f"{config['server_url']}/check", data=data, files=files)
     try:
         if response.status_code == 200:
@@ -32,14 +47,29 @@ def run_tests():
             "response_text": response.text
         }
 
+def _run_check_cli(args):
+    pretty_print(
+        run_tests(test_index=args.test),
+        final=False,
+        show_bytes=args.bytes,
+    )
+
+
 def register(subparsers):
     parser = subparsers.add_parser("check", help="Run only test cases")
     parser.add_argument(
         "-b", "--bytes",
         action="store_true",
-        help="Show outputs in raw byte/escape form (e.g., \\n, \\t, \\x00)"
+        help="Show outputs in raw byte/escape form (e.g., \\n, \\t, \\x00)",
     )
-    parser.set_defaults(func=lambda args: pretty_print(run_tests(), final=False, show_bytes=args.bytes))
+    parser.add_argument(
+        "-t", "--test",
+        type=int,
+        default=None,
+        metavar="N",
+        help="Run only test N",
+    )
+    parser.set_defaults(func=_run_check_cli)
 
 # --- New helper ---
 def _check_last_submission():

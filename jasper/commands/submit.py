@@ -21,7 +21,7 @@ def run(args):
     server_url = config.get("server_url", "http://localhost:3000")
 
     print("Step 1/4: Running unit tests...")
-    test_result = run_tests()
+    test_result = run_tests(announce_request=False)
     if test_result is None:
         print("❌ Unit tests failed or could not be run. Aborting submit.")
         return
