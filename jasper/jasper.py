@@ -15,6 +15,8 @@ from jasper.commands import submit as submit_cmd
 from jasper.commands import version as version_cmd
 from jasper.commands import relay as relay_cmd
 from jasper.commands import history as history_cmd
+from jasper.commands import ping as ping_cmd
+from jasper.commands import update as update_cmd
 
 def main():
     parser = argparse.ArgumentParser(description="Jasper CLI Tool")
@@ -29,7 +31,8 @@ def main():
     relay_cmd.register(subparsers)
     submit_cmd.register(subparsers)
     history_cmd.register(subparsers)
-   
+    ping_cmd.register(subparsers)
+    update_cmd.register(subparsers)
 
     args = parser.parse_args()
     args.func(args)
