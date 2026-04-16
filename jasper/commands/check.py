@@ -18,7 +18,7 @@ def run_tests(test_index=None, announce_request=True):
             "problem_id": problem_id,
         }
         if test_index is not None:
-            data["test"] = str(test_index)
+            data["test_index"] = str(test_index)
 
         if announce_request:
             if test_index is not None:
