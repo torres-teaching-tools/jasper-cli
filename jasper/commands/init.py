@@ -4,7 +4,7 @@ from urllib import request, error
 from jasper.utils import save_config, load_config
 from jasper.pretty import print_status, show_table
 
-CODENAME_REGEX = re.compile(r'^[a-z]+-[a-z]+-\d+$')  # adjective-noun-number
+CODENAME_REGEX = re.compile(r'^[^\s-]+(-[^\s-]+)+$')  # any hyphenated string
 
 def register(subparsers):
     parser = subparsers.add_parser("init", help="Initialize jasper CLI with your info")
@@ -59,11 +59,11 @@ def run(args):
 
     # 2) Prompt for CLASS CODENAME (stored as student_id)
     print("\nPlease enter your CLASS CODENAME.")
-    print("TA Emerson emailed a codename to your mavs.uta.edu account in the form adjective-noun-number.")
+    print("TA Emerson emailed a codename to your mavs.uta.edu account (a hyphenated string).")
     while True:
         codename = input("Class codename (e.g., silly-cat-7): ").strip()
         if not CODENAME_REGEX.fullmatch(codename):
-            print_status("Invalid format. Expected adjective-noun-number (e.g., silly-cat-7).", success=False)
+            print_status("Invalid format. Expected a hyphenated string (e.g., silly-cat-7).", success=False)
             continue
         break
 
