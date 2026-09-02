@@ -52,11 +52,25 @@ def _run_check_cli(args):
         run_tests(test_index=args.test),
         final=False,
         show_bytes=args.bytes,
+        test_index=args.test,
     )
 
 
 def register(subparsers):
-    parser = subparsers.add_parser("check", help="Run only test cases")
+    parser = subparsers.add_parser(
+        "check",
+        help="Run only test cases",
+        description=(
+            "Run the test cases for the current problem.\n\n"
+            "Tips:\n"
+            "  • Use -b/--bytes to see outputs in raw byte/escape form "
+            "(e.g., \\n, \\t, \\x00) — helpful when whitespace differences "
+            "cause a test to fail.\n"
+            "  • Use -t/--test N to run only a single test (e.g., "
+            "`jasper check -t 3`)."
+        ),
+        formatter_class=__import__("argparse").RawDescriptionHelpFormatter,
+    )
     parser.add_argument(
         "-b", "--bytes",
         action="store_true",
@@ -67,7 +81,7 @@ def register(subparsers):
         type=int,
         default=None,
         metavar="N",
-        help="Run only test N",
+        help="Run only test N (e.g., `jasper check -t 3`)",
     )
     parser.set_defaults(func=_run_check_cli)
 
@@ -84,7 +98,7 @@ def _check_last_submission():
     else:
         return False, None
 
-def pretty_print(result, final, show_bytes=False):
+def pretty_print(result, final, show_bytes=False, test_index=None):
     os.makedirs(".jasper", exist_ok=True)
     with open(".jasper/check.json", "w") as f:
         json.dump(result, f, indent=2)
@@ -228,7 +242,24 @@ def pretty_print(result, final, show_bytes=False):
     if final:
         print()
         print("💾 Stored final submission result.")
-    
+
+    # --- Show available options as tips ---
+    tips = []
+    if not show_bytes:
+        tips.append(
+            "Add -b (Byte form) to see raw bytes/escapes like \\n, \\t, \\x00 — "
+            "useful when whitespace makes a test fail: `jasper check -b`"
+        )
+    if test_index is None:
+        tips.append(
+            "Add -t N to run only a specific test: `jasper check -t 3`"
+        )
+    if tips:
+        print()
+        print(format_text("💡 Tips:", bold=True))
+        for tip in tips:
+            print(f"    • {tip}")
+
     # --- Show submission status ---
     ok, msg = _check_last_submission()
     if ok:
